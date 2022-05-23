@@ -61,21 +61,4 @@ public class Main {
         futureList.clear();
     }
 
-    public static void startReadAndPrintResult(ExecutorService executor, ReaderWriter rw,
-                                               Map<Integer, Integer> map,  List<Future<Result>> futureList) throws ExecutionException, InterruptedException {
-        long max = 0;
-        long min = Long.MAX_VALUE;
-        for (int i = 0; i < PROCS; i++) {
-            int mod = i;
-            futureList.add(executor.submit(() -> rw.read(mod)));
-        }
-        for (int i = 0; i < futureList.size(); i++) {
-            Result temp = futureList.get(i).get();
-            min = Math.min(min, temp.start);
-            max = Math.max(max, temp.end);
-        }
-        System.out.printf("Время выполнения чтения для %s: %d мс\n", map.getClass().getSimpleName(), max - min);
-        map.clear();
-        futureList.clear();
-    }
 }
