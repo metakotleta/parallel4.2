@@ -11,6 +11,10 @@ public class ReaderWriter {
         this.map = map;
     }
 
+    public Map<Integer, Integer> getMap() {
+        return map;
+    }
+
     public Result write(int mod) {
         long start = System.currentTimeMillis();
         for (int i = mod; i < array.length; i += parts) {

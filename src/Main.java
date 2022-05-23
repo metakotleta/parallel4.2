@@ -3,12 +3,12 @@ import java.util.concurrent.*;
 
 public class Main {
 
-    public static final int PROCS = 3;
+    public static final int PROCS = 8;
     public static Random random = new Random();
 
     public static void main(String[] args) throws ExecutionException, InterruptedException {
   //     Thread.sleep(10000);
-        int[] array = generateArray(10000000, 10);
+        int[] array = generateArray(100000000, 100000000);
         ConcurrentHashMap<Integer, Integer> realFast = new ConcurrentHashMap<>();
         Map<Integer, Integer> notSoFast = Collections.synchronizedMap(new HashMap<>());
 
@@ -18,11 +18,11 @@ public class Main {
         List<Future<Result>> futureList = new ArrayList<>();
 
         ReaderWriter rw = new ReaderWriter(array, PROCS, realFast);
-        startAndPrintResult(executorFast, rw, realFast, futureList, true);
-        startAndPrintResult(executorFast, rw, realFast, futureList, false);
+        startAndPrintResult(executorFast, rw, futureList, true);
+        startAndPrintResult(executorFast, rw, futureList, false);
         rw = new ReaderWriter(array, PROCS, notSoFast);
-        startAndPrintResult(executorSlow, rw, notSoFast, futureList, true);
-        startAndPrintResult(executorSlow, rw, notSoFast, futureList, false);
+        startAndPrintResult(executorSlow, rw, futureList, true);
+        startAndPrintResult(executorSlow, rw, futureList, false);
         executorFast.shutdown();
         executorSlow.shutdown();
     }
@@ -35,7 +35,7 @@ public class Main {
         return array;
     }
 
-    public static void startAndPrintResult(ExecutorService executor, ReaderWriter rw, Map<Integer, Integer> map,  List<Future<Result>> futureList,
+    public static void startAndPrintResult(ExecutorService executor, ReaderWriter rw,  List<Future<Result>> futureList,
                                            boolean mode) throws ExecutionException, InterruptedException {
         long max = 0;
         long min = Long.MAX_VALUE;
@@ -53,10 +53,10 @@ public class Main {
             max = Math.max(max, temp.end);
         }
         if (mode) {
-            System.out.printf("Время выполнения записи для %s: %d мс\n", map.getClass().getSimpleName(), max - min);
+            System.out.printf("Время выполнения записи для %s: %d мс\n", rw.getMap().getClass().getSimpleName(), max - min);
         } else {
-            System.out.printf("Время выполнения чтения для %s: %d мс\n", map.getClass().getSimpleName(), max - min);
-            map.clear();
+            System.out.printf("Время выполнения чтения для %s: %d мс\n", rw.getMap().getClass().getSimpleName(), max - min);
+            rw.getMap().clear();
         }
         futureList.clear();
     }
