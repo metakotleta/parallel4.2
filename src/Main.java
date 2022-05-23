@@ -3,23 +3,24 @@ import java.util.concurrent.*;
 
 public class Main {
 
-    public static final int PROCS = 4;
-    public static final long MAIN_SLEEP = 1000;
+    public static final int PROCS = 3;
     public static Random random = new Random();
 
     public static void main(String[] args) throws ExecutionException, InterruptedException {
-        Thread.sleep(10000);
-        int[] array = generateArray(50000, 100000);
+  //     Thread.sleep(10000);
+        int[] array = generateArray(10000000, 10);
         ConcurrentHashMap<Integer, Integer> realFast = new ConcurrentHashMap<>();
         Map<Integer, Integer> notSoFast = Collections.synchronizedMap(new HashMap<>());
+
         ExecutorService executorFast = Executors.newFixedThreadPool(PROCS);
         ExecutorService executorSlow = Executors.newFixedThreadPool(PROCS);
+
         List<Future<Result>> futureList = new ArrayList<>();
 
-        ReaderWriter rw = new ReaderWriter(array, PROCS);
-
+        ReaderWriter rw = new ReaderWriter(array, PROCS, realFast);
         startAndPrintResult(executorFast, rw, realFast, futureList, true);
         startAndPrintResult(executorFast, rw, realFast, futureList, false);
+        rw = new ReaderWriter(array, PROCS, notSoFast);
         startAndPrintResult(executorSlow, rw, notSoFast, futureList, true);
         startAndPrintResult(executorSlow, rw, notSoFast, futureList, false);
         executorFast.shutdown();
@@ -34,11 +35,10 @@ public class Main {
         return array;
     }
 
-    public static void startAndPrintResult(ExecutorService executor, ReaderWriter rw,
-                                                Map<Integer, Integer> map,  List<Future<Result>> futureList, boolean mode) throws ExecutionException, InterruptedException {
+    public static void startAndPrintResult(ExecutorService executor, ReaderWriter rw, Map<Integer, Integer> map,  List<Future<Result>> futureList,
+                                           boolean mode) throws ExecutionException, InterruptedException {
         long max = 0;
         long min = Long.MAX_VALUE;
-        rw.setMap(map);
         for (int i = 0; i < PROCS; i++) {
             int mod = i;
             if (mode) {
@@ -47,8 +47,8 @@ public class Main {
                 futureList.add(executor.submit(() -> rw.read(mod)));
             }
         }
-        for (int i = 0; i < futureList.size(); i++) {
-            Result temp = futureList.get(i).get();
+        for (Future<Result> resultFuture : futureList) {
+            Result temp = resultFuture.get();
             min = Math.min(min, temp.start);
             max = Math.max(max, temp.end);
         }
