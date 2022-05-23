@@ -2,13 +2,14 @@ import java.util.*;
 import java.util.concurrent.*;
 
 public class Main {
-
+    public static final int DIM = 100000000;
+    public static final int MAX_VALUE = 1000000;
     public static final int PROCS = 8;
     public static Random random = new Random();
 
     public static void main(String[] args) throws ExecutionException, InterruptedException {
-  //     Thread.sleep(10000);
-        int[] array = generateArray(100000000, 100000000);
+        Thread.sleep(5000);
+        int[] array = generateArray(DIM, MAX_VALUE);
         ConcurrentHashMap<Integer, Integer> realFast = new ConcurrentHashMap<>();
         Map<Integer, Integer> notSoFast = Collections.synchronizedMap(new HashMap<>());
 
@@ -20,10 +21,11 @@ public class Main {
         ReaderWriter rw = new ReaderWriter(array, PROCS, realFast);
         startAndPrintResult(executorFast, rw, futureList, true);
         startAndPrintResult(executorFast, rw, futureList, false);
+        executorFast.shutdown();
+
         rw = new ReaderWriter(array, PROCS, notSoFast);
         startAndPrintResult(executorSlow, rw, futureList, true);
         startAndPrintResult(executorSlow, rw, futureList, false);
-        executorFast.shutdown();
         executorSlow.shutdown();
     }
 
